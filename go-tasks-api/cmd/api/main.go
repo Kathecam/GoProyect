@@ -11,6 +11,8 @@ import (
 	"github.com/joho/godotenv"
 
 	"github.com/Kathecam/go-tasks-api/internal/config"
+	"github.com/Kathecam/go-tasks-api/internal/handlers"
+	"github.com/Kathecam/go-tasks-api/internal/middleware"
 )
 
 func main() {
@@ -43,8 +45,12 @@ func main() {
 	}
 
 	// Middlewares globales (orden importa)
-	app.Use(recover.New()) // Captura panics
-	app.Use(cors.New())    // CORS básico
+	app.Use(recover.New())             // Captura panics
+	app.Use(cors.New())                // CORS básico
+	app.Use(middleware.ErrorHandler()) // Manejo de errores centralizado
+
+	// Crear handlers
+	taskHandler := handlers.NewTaskHandler()
 
 	// Rutas de sistema (fuera de versionado)
 	app.Get("/health/ping", healthHandler(cfg))
@@ -59,11 +65,13 @@ func main() {
 	v1.Use(versionMiddleware(cfg)) // Middleware para agregar versión en headers
 
 	v1.Get("/version", versionHandler(cfg))
-	// Grupo para tareas (futuro)
+	// Grupo para tareas con nuevos handlers
 	tasks := v1.Group("/tasks")
-	tasks.Get("/", getTasksHandler)         // GET /api/v1/tasks
-	tasks.Post("/", createTaskHandler)      // POST /api/v1/tasks
-	tasks.Delete("/:id", deleteTaskHandler) // DELETE /api/v1/tasks/:id
+	tasks.Get("/", taskHandler.GetTasks)         // GET /api/v1/tasks
+	tasks.Post("/", taskHandler.CreateTask)      // POST /api/v1/tasks
+	tasks.Get("/:id", taskHandler.GetTaskByID)   // GET /api/v1/tasks/:id
+	tasks.Put("/:id", taskHandler.UpdateTask)    // PUT /api/v1/tasks/:id
+	tasks.Delete("/:id", taskHandler.DeleteTask) // DELETE /api/v1/tasks/:id
 
 	// Iniciar servidor
 	address := cfg.Host + ":" + cfg.Port
@@ -97,30 +105,6 @@ func versionHandler(cfg *config.Config) fiber.Handler {
 			"environment": cfg.Environment,
 		})
 	}
-}
-
-func getTasksHandler(c *fiber.Ctx) error {
-	// Implementar lógica para obtener tareas
-	return c.JSON(fiber.Map{
-		"tasks": []string{},
-	})
-}
-
-func createTaskHandler(c *fiber.Ctx) error {
-	// Implementar lógica para crear una nueva tarea
-	return c.JSON(fiber.Map{
-		"message": "Task created",
-	})
-}
-
-func deleteTaskHandler(c *fiber.Ctx) error {
-	// Obtener ID desde parámetros de ruta
-	id := c.Params("id")
-
-	return c.JSON(fiber.Map{
-		"deleted": true,
-		"id":      id,
-	})
 }
 
 func versionMiddleware(cfg *config.Config) fiber.Handler {
