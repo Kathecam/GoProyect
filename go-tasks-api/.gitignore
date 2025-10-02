@@ -1,0 +1,37 @@
+# Binarios
+tmp/
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+
+# Archivos de configuración sensibles
+.env
+.env.local
+.env.production
+
+# Archivos de editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+build-errors.log
+
+# Dependencias
+vendor/
+
+# OS generados
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
