@@ -136,47 +136,6 @@ func (h *TaskHandler) CreateTask(c *fiber.Ctx) error {
 	})
 }
 
-// UpdateTask maneja PUT /tasks
-func (h *TaskHandler) UpdateTask(c *fiber.Ctx) error {
-	var req dto.UpdateTaskRequest
-	id := c.Params("id")
-	// Parse JSON body
-	if err := c.BodyParser(&req); err != nil {
-		return errors.ErrInvalidJSON
-	}
-	// Validar estructura
-	if err := h.validator.ValidateStruct(&req); err != nil {
-		return err // Ya es un AppError con detalles
-	}
-	// Validar que el ID no esté vacío
-	if id == "" {
-		return errors.ErrInvalidInput.WithDetails(map[string]string{
-			"id": "Task ID is required",
-		})
-	}
-	//validar que almenos un campo venga en el request
-	if req.Title == nil && req.Description == nil && req.Priority == nil && req.DueDate == nil && req.Completed == nil {
-		return errors.ErrInvalidInput.WithDetails(map[string]string{
-			"body": "nothing to update",
-		})
-	}
-	// Actualizar tarea (mock)
-	task := dto.TaskResponse{
-		ID:          id,
-		Title:       *req.Title,
-		Description: *req.Description,
-		Priority:    *req.Description,
-		Completed:   *req.Completed,
-		CreatedAt:   time.Now().Add(-24 * time.Hour),
-		UpdatedAt:   time.Now(),
-	}
-	return c.JSON(dto.SuccessResponse{
-		Success: true,
-		Message: "Task updated successfully",
-		Data:    task,
-	})
-}
-
 // DeleteTask maneja DELETE /tasks/:id
 func (h *TaskHandler) DeleteTask(c *fiber.Ctx) error {
 	id := c.Params("id")
